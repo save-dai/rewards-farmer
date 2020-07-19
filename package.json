@@ -1,0 +1,26 @@
+{
+  "name": "rewards-farmer",
+  "version": "1.0.0",
+  "description": "open-source factory for managing rewards tokens",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/save-dai/rewards-farmer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/save-dai/rewards-farmer/issues"
+  },
+  "homepage": "https://github.com/save-dai/rewards-farmer#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.1.0",
+    "@openzeppelin/contracts-ethereum-package": "^3.0.0"
+  }
+}

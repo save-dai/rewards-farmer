@@ -1,0 +1,6 @@
+build/*
+node_modules/*
+package-lock.json
+secrets.json
+.DS_Store
+truffle-config.js
