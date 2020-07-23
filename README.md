@@ -8,19 +8,19 @@ open-source factory for managing rewards tokens
 ### FarmerFactory.sol
 
 * uses OpenZeppelin's [ProxyFactory](https://github.com/OpenZeppelin/openzeppelin-sdk/blob/master/packages/lib/contracts/upgradeability/ProxyFactory.sol) contract
-* `deployWrapper` deploys a clone of logic contract
-* `transferCDAI` transfers amount of CDAI from sender's wrapper contract to recipient's wrapper contract. If recipient does not have a wrapper contract, one is deployed on their behalf. 
-* `mapping (address => address) public cDAIOwner;` maps user address to address of deployed clone
+* `deployProxy` deploys a clone of logic contract
+* `transferToken` transfers amount of token from sender's proxy contract to recipient's proxy contract. If recipient does not have a proxy contract, one is deployed on their behalf. 
+* `mapping (address => address) public farmerProxy;` maps user address to address of deployed clone
 
 ### Farmer.sol
 
 * sets user address as owner
-* `mintcDAI` mints cDAI
-* `claimCOMP` calls Compounds claimComp function
+<!-- * `mintcDAI` mints cDAI
+* `claimCOMP` calls Compounds claimComp function -->
 
 ## How to use
 
-Inherit the Factory contract in your contract. 
+Inherit from the FarmerFactory contract in your token contract. Inherit from the Farmer contract to create your own Farmer contract that mints your rewards bearing token. The FarmerFactory deploys proxy contracts that delegate to your Farmer contract.
 
 ### Example
 
@@ -31,13 +31,13 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./Factory.sol";
 import "./CDAIWrapper.sol";
 
-contract TokenS is Factory, ERC20 {
+contract saveDAI is Factory, ERC20 {
 
     constructor() public ERC20("TokenS", "TKS") {}
 
     function mint(uint256 amount) public {
         // deploy clone
-        address clone = deployWrapper();
+        address clone = deployProxy();
 
         // transfer DAI to proxy contract
         require(

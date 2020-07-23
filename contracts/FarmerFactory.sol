@@ -2,7 +2,6 @@
 
 pragma solidity ^0.6.0;
 
-import "./Farmer.sol";
 import "./lib/ProxyFactory.sol";
 
 contract FarmerFactory is ProxyFactory {
@@ -19,44 +18,28 @@ contract FarmerFactory is ProxyFactory {
         logicContract = _logicContract;
     }
 
-    function deployProxy(bytes memory data)
+    function deployProxy(address owner, address cToken)
         public
         virtual
         returns (address proxy)
     {
-        address proxy = deployMinimal(logicContract, data);
+        bytes memory data = _encodeData(owner, cToken);
+        proxy = deployMinimal(logicContract, data);
         farmerProxy[msg.sender] = proxy;
         return proxy;
     }
 
-    function transferToken(address to, uint256 amount)
-        public
-        virtual
-    {
-        address senderProxy = farmerProxy[msg.sender];
-        address recipientProxy = farmerProxy[to];
-
-        // if recipient does not have a proxy, deploy a proxy
-        if (farmerProxy == address(0)) {
-            bytes memory data = _encodeData(to);
-            address proxy = deployMinimal(logicContract, data);
-            farmerProxy[to] = proxy;
-        }
-        // approval
-        cDAI.transferFrom(senderProxy, recipientProxy, amount);
-
-        // if transferring all, selfdestruct proxy?
-    }
-
-    function _encodeData(
-        address recipient
-    )
+    function _encodeData(address user, address cToken)
         internal
-        view
+        pure
         returns (bytes memory)
     {
-        bytes4 selector = 0x8f5675af;
-        return abi.encodeWithSelector(selector, recipient);
+        bytes4 selector = 0xc4d66de8;
+        return abi.encodeWithSelector(
+            selector,
+            user,
+            cToken
+        );
     }
 
 }
