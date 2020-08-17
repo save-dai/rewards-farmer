@@ -25,19 +25,19 @@ contract FarmerFactory is ProxyFactory {
     {
         bytes memory data = _encodeData(owner, cToken);
         proxy = deployMinimal(logicContract, data);
-        farmerProxy[msg.sender] = proxy;
+        farmerProxy[owner] = proxy;
         return proxy;
     }
 
-    function _encodeData(address user, address cToken)
+    function _encodeData(address owner, address cToken)
         internal
         pure
         returns (bytes memory)
     {
-        bytes4 selector = 0xc4d66de8;
+        bytes4 selector = 0x485cc955;
         return abi.encodeWithSelector(
             selector,
-            user,
+            owner,
             cToken
         );
     }

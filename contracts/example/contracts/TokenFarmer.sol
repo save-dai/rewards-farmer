@@ -5,6 +5,7 @@ pragma solidity ^0.6.0;
 import "../../Farmer.sol";
 import "./interface/CTokenInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract TokenFarmer is Farmer {
     using SafeMath for uint256;
@@ -21,30 +22,42 @@ contract TokenFarmer is Farmer {
         dai = IERC20(cToken.underlying());
     }
 
-    function mint() public returns (uint256) {
+
+    function mint() public returns (uint256)  {
         // identify the current balance of the contract
-        uint256 balance = dai.balanceOf(address(this));
+        uint256 daiBalance = dai.balanceOf(address(this));
+
+        // approve the transfer
+        dai.approve(address(cToken), daiBalance);
+
+        uint256 initialBalance = cToken.balanceOf(address(this));
 
         // mint interest bearing token
-        cToken.mint(balance);
+        require(cToken.mint(daiBalance) == 0, "Tokens must mint");
 
-        // return number of cTokens minted
-        return cToken.balanceOf(address(this));
+        uint256 updatedBalance = cToken.balanceOf(address(this));
+
+        return updatedBalance.sub(initialBalance);
     }
 
-    function transfer(address to, uint256 amount) public returns (uint256) {
-        cToken.transfer(to, amount);
+    function transfer(address to, uint256 amount) public returns (bool) {
+        // approve the transfer
+        cToken.approve(to, amount);
+
+        require(cToken.transfer(to, amount), "must transfer");
+        return true;
         // if transferring all, selfdestruct proxy?
     }
+
+    // function withdrawReward() public {
+    //     // calls claimCOMP
+    //     // gets balance
+    //     // transfer whole amount
+    // }
 
     // function redeem (withdraws DAI, which automatically withdraws COMP)
         // when you want to redeem cDAI
         // transfers COMP to user
-
-    // withdrawReward
-        // calls claimCOMP
-        // gets balance
-        // transfer the whole
 
     // getTotalRewardEarned (balance + accrued)
 

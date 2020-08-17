@@ -8,8 +8,10 @@ import "./interface/CTokenInterface.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract TokenK is ERC20, FarmerFactory {
+contract TokenFarmerFactory is ERC20, FarmerFactory {
     using SafeMath for uint256;
+
+    event Mint(uint256 amount, address user);
 
     // interfaces
     IERC20 public dai;
@@ -17,9 +19,11 @@ contract TokenK is ERC20, FarmerFactory {
 
     constructor(
         address cDaiAddress,
-        address daiAddress
-        )
+        address daiAddress,
+        address logicAddress
+    )
         ERC20("TokenK", "TKL")
+        FarmerFactory(logicAddress)
         public
     {
         cToken = CTokenInterface(cDaiAddress);
@@ -30,11 +34,13 @@ contract TokenK is ERC20, FarmerFactory {
         external
         returns (bool)
     {
+        address proxy;
+
         // if msg.sender does not have a proxy, deploy proxy
         if (farmerProxy[msg.sender] == address(0)) {
-            address proxy = deployProxy(msg.sender, address(cToken));
+            proxy = deployProxy(msg.sender, address(cToken));
         } else {
-            address proxy = farmerProxy[msg.sender];
+            proxy = farmerProxy[msg.sender];
         }
 
         // transfer total DAI needed
@@ -47,32 +53,42 @@ contract TokenK is ERC20, FarmerFactory {
         );
 
         // mint the interest bearing token
-        TokenFarmer(proxy).mint();
+        uint256 tokensMinted = TokenFarmer(proxy).mint();
 
         // mint your token
-        super._mint(msg.sender, _amount);
-        emit Mint(_amount, msg.sender);
+        super._mint(msg.sender, tokensMinted);
+        emit Mint(tokensMinted, msg.sender);
 
         return true;
     }
 
-    function transfer(address to, uint256 amount) public override {
-
+    function transfer(address to, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
         address senderProxy = farmerProxy[msg.sender];
         address recipientProxy = farmerProxy[to];
 
         // if recipient does not have a proxy, deploy a proxy
         if (recipientProxy == address(0)) {
-            address proxy = deployProxy(to, address(cToken));
-            farmerProxy[to] = proxy;
-        }
+            recipientProxy = deployProxy(to, address(cToken));
+        } 
 
         // transfer interest bearing token to recipient
         TokenFarmer(senderProxy).transfer(recipientProxy, amount);
 
         // transfer TokenK tokens
         super.transfer(to, amount);
+
+        // to do: EVENT
+
+        return true;
     }
+
+    // function withdrawRewards() external returns (uint256 amount){
+    //     return withdrawRewardsInternal(msg.sender);
+    // }
 
     // function withdrawCOMP() public
     //     address wrapper = cDAIOwner[msg.sender];
