@@ -3,7 +3,8 @@
 pragma solidity ^0.6.0;
 
 import "../../Farmer.sol";
-import "./interface/CTokenInterface.sol";
+import "./interface/ICToken.sol";
+import "./interface/IComptrollerLens.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
@@ -12,13 +13,13 @@ contract TokenFarmer is Farmer {
 
     // interfaces
     IERC20 public dai;
-    CTokenInterface public cToken;
+    ICToken public cToken;
 
   function initialize(address owner, address cTokenAddress)
         public
     {
         Farmer.initialize(owner);
-        cToken = CTokenInterface(cTokenAddress);
+        cToken = ICToken(cTokenAddress);
         dai = IERC20(cToken.underlying());
     }
 
@@ -49,11 +50,21 @@ contract TokenFarmer is Farmer {
         // if transferring all, selfdestruct proxy?
     }
 
-    // function withdrawReward() public {
-    //     // calls claimCOMP
-    //     // gets balance
-    //     // transfer whole amount
-    // }
+    function getTotalCOMPEarned(address compAddress) public returns (uint256) {
+        IComptrollerLens comptroller = IComptrollerLens(address(cToken.comptroller()));
+        comptroller.claimComp(address(this));
+        IERC20 comp = IERC20(compAddress);
+        uint256 balance = comp.balanceOf(address(this));
+        return balance;
+    }
+
+    function withdrawReward(address compAddress, address to) public {
+        IComptrollerLens comptroller = IComptrollerLens(address(cToken.comptroller()));
+        comptroller.claimComp(address(this));
+        IERC20 comp = IERC20(compAddress);
+        uint256 balance = comp.balanceOf(address(this));
+        require(comp.transfer(to, balance), "must transfer");
+    }
 
     // function redeem (withdraws DAI, which automatically withdraws COMP)
         // when you want to redeem cDAI

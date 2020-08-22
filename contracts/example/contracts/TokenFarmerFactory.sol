@@ -4,7 +4,7 @@ pragma solidity ^0.6.0;
 
 import "../../FarmerFactory.sol";
 import "./TokenFarmer.sol";
-import "./interface/CTokenInterface.sol";
+import "./interface/ICToken.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -15,7 +15,7 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
 
     // interfaces
     IERC20 public dai;
-    CTokenInterface public cToken;
+    ICToken public cToken;
 
     constructor(
         address cDaiAddress,
@@ -26,7 +26,7 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         FarmerFactory(logicAddress)
         public
     {
-        cToken = CTokenInterface(cDaiAddress);
+        cToken = ICToken(cDaiAddress);
         dai = IERC20(daiAddress);
     }
 
@@ -86,13 +86,21 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         return true;
     }
 
+    function getTotalCOMPEarned(address compAddress)
+        public
+        returns (uint256) 
+    {
+        address proxy = farmerProxy[msg.sender];
+        return TokenFarmer(proxy).getTotalCOMPEarned(compAddress);
+    }
+
+    function withdrawReward(address compAddress) public {
+        address proxy = farmerProxy[msg.sender];
+        TokenFarmer(proxy).withdrawReward(compAddress, msg.sender);
+    }
+
     // function withdrawRewards() external returns (uint256 amount){
     //     return withdrawRewardsInternal(msg.sender);
-    // }
-
-    // function withdrawCOMP() public
-    //     address wrapper = cDAIOwner[msg.sender];
-    //     CDAIWrapper(wrapper).withdrawCOMP(msg.sender);
     // }
 
     // function getTotalCOMPEarned() public view

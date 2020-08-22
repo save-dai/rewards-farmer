@@ -16,17 +16,26 @@ const {
 
 const TokenFarmerFactory = artifacts.require('TokenFarmerFactory');
 const TokenFarmer = artifacts.require('TokenFarmer');
-const CTokenInterface = artifacts.require('CTokenInterface');
+const ICToken = artifacts.require('ICToken');
+const IComptrollerLens = artifacts.require('IComptrollerLens');
 const ERC20 = artifacts.require('ERC20');
+
+// ABI
+const lensABI = require('./lens.json');
 
 // mainnet addresses
 const daiAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
 const cDaiAddress = '0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643';
-const userWallet = '0x274d9E726844AB52E351e8F1272e7fc3f58B7E5F';
+const compAddress = '0xc00e94cb662c3520282e6f5717214004a7f26888';
+
+const lensAddress = web3.utils.toChecksumAddress('0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074');
+const comptroller = web3.utils.toChecksumAddress('0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b');
+
+const userWallet = '0x897607ab556177b0e0938541073ac1e01c55e483';
 
 
 contract('TokenFarmerFactory', function (accounts) {
-  amount = ether('1000'); // 1000 DAI
+  amount = ether('100000'); // 1000 DAI
   owner = accounts[0];
   notOwner = accounts[1];
   recipient = accounts[2];
@@ -42,9 +51,13 @@ contract('TokenFarmerFactory', function (accounts) {
   
     this.tokenFarmerFactory = await TokenFarmerFactory.at(this.tokenFarmerFactory.address);
 
-    // instantiate mock tokens
+    this.lensContract = new web3.eth.Contract(lensABI, lensAddress);
+
+    // instantiate contracts
     daiInstance = await ERC20.at(daiAddress);
-    cDaiInstance = await CTokenInterface.at(cDaiAddress);
+    cDaiInstance = await ICToken.at(cDaiAddress);
+    compInstance = await ERC20.at(compAddress);
+    comptrollerInstance = await IComptrollerLens.at(comptroller);
 
     // Send 0.1 eth to userAddress to have gas to send an ERC20 tx.
     await web3.eth.sendTransaction({
@@ -134,5 +147,45 @@ contract('TokenFarmerFactory', function (accounts) {
     // it should increase balance of cDAI for recipient's proxy by amount transferred
     // it should transfer partial amount 
   });
+  describe('getTotalCOMPEarned', async function () {
+    beforeEach(async function () {
+      await daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
+      await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+    });
+    it('should return total comp earned', async function () {
+      await time.advanceBlock();
 
+      const proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
+      this.tokenFarmerProxy = await TokenFarmer.at(proxyAddress);
+
+      const metaData = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+      console.log(metaData);
+
+      const earned = await this.tokenFarmerFactory.getTotalCOMPEarned.call(compAddress, {from: userWallet});
+      console.log(earned.toString());
+
+    });
+  });
+  describe('withdrawReward', async function () {
+    beforeEach(async function () {
+      await daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
+      await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+    });
+    it('should return total comp earned', async function () {
+      await time.advanceBlock();
+
+      const proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
+      this.tokenFarmerProxy = await TokenFarmer.at(proxyAddress);
+
+      await this.tokenFarmerFactory.withdrawReward(compAddress, {from: userWallet});
+
+      const metaData = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, userWallet).call();
+        console.log('userWallet', metaData);
+
+      const balance = await compInstance.balanceOf(userWallet);
+      console.log(balance.toString());
+    });
+  });
 });
