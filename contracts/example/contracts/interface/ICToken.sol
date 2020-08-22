@@ -1,6 +1,8 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
-// compound interface
+// Compound cToken interface
 interface ICToken {
     function mint(uint mintAmount) external returns (uint256); // For ERC20
     function exchangeRateCurrent() external returns (uint256);
