@@ -1,0 +1,33 @@
+name: Lint and test
+
+on: [push]
+
+jobs:
+  LintAndTest:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [13.7.0]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node Environment
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install
+      run: |
+        npm i
+        npm i -g truffle
+        npm i eslint
+        npm i solhint
+    - name: Lint
+      run: npm run lint:nofix
+    - name: Compile and Test
+      run: |
+        truffle compile --all
+        npm test
+      env:
+        CI: true

@@ -8,10 +8,7 @@ const { expect } = require('chai');
 const {
   BN,
   ether,
-  time,
   balance,
-  expectRevert,
-  expectEvent,
 } = require('@openzeppelin/test-helpers');
 
 const TokenFarmerFactory = artifacts.require('TokenFarmerFactory');
@@ -27,12 +24,9 @@ const lensABI = require('./lens.json');
 const daiAddress = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
 const cDaiAddress = '0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643';
 const compAddress = '0xc00e94cb662c3520282e6f5717214004a7f26888';
-
 const lensAddress = web3.utils.toChecksumAddress('0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074');
 const comptroller = web3.utils.toChecksumAddress('0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b');
-
 const userWallet = web3.utils.toChecksumAddress('0x897607ab556177b0e0938541073ac1e01c55e483');
-
 
 contract('TokenFarmerFactory', function (accounts) {
   amount = ether('100000'); // 100000 DAI
@@ -48,8 +42,8 @@ contract('TokenFarmerFactory', function (accounts) {
       daiAddress,
       compAddress,
       this.tokenFarmer.address
-    );    
-  
+    );
+
     this.tokenFarmerFactory = await TokenFarmerFactory.at(this.tokenFarmerFactory.address);
 
     this.lensContract = new web3.eth.Contract(lensABI, lensAddress);
@@ -96,11 +90,11 @@ contract('TokenFarmerFactory', function (accounts) {
       this.tokenFarmerProxy = await TokenFarmer.at(proxyAddress);
 
       const proxyBalancecDAI = await cDaiInstance.balanceOf(proxyAddress);
-      console.log(proxyBalancecDAI.toString())
-
+      console.log(proxyBalancecDAI.toString());
+      // TODO - assert cDAI balance is correct
     });
-    // it should mint more cDAI in the same proxy if msg.sender mints more tokenK
     it('should mint TokenK equivalent to cDAI tokens', async function () {
+      // it should mint more cDAI in the same proxy if msg.sender mints more tokenK
       await daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
       await this.tokenFarmerFactory.mint(amount, { from: userWallet });
 
@@ -158,7 +152,7 @@ contract('TokenFarmerFactory', function (accounts) {
     it('should transfer all TokenK to recipient', async function () {
       const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
 
-      await this.tokenFarmerFactory.transfer(recipient, senderTokenKBalanceBefore, {from: userWallet});
+      await this.tokenFarmerFactory.transfer(recipient, senderTokenKBalanceBefore, { from: userWallet });
 
       const senderTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(userWallet);
       const recipientTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(recipient);
@@ -170,7 +164,7 @@ contract('TokenFarmerFactory', function (accounts) {
       const sendercDAIbalanceBefore = await cDaiInstance.balanceOf(this.senderProxyAddress);
       const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
 
-      await this.tokenFarmerFactory.transfer(recipient, senderTokenKBalanceBefore, {from: userWallet});
+      await this.tokenFarmerFactory.transfer(recipient, senderTokenKBalanceBefore, { from: userWallet });
 
       this.recipientProxyAddress = await this.tokenFarmerFactory.farmerProxy.call(recipient);
 
@@ -180,9 +174,9 @@ contract('TokenFarmerFactory', function (accounts) {
       assert.equal(sendercDAIbalanceAfter.toString(), 0);
       assert.equal(sendercDAIbalanceBefore.toString(), recipientcDAIBalanceAfter.toString());
     });
-    // 
+    //
     // it should increase balance of cDAI for recipient's proxy by amount transferred
-    // it should transfer partial amount 
+    // it should transfer partial amount
   });
   describe('getTotalCOMPEarned', async function () {
     beforeEach(async function () {
