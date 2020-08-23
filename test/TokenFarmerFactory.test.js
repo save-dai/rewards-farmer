@@ -46,6 +46,7 @@ contract('TokenFarmerFactory', function (accounts) {
     this.tokenFarmerFactory = await TokenFarmerFactory.new(
       cDaiAddress,
       daiAddress,
+      compAddress,
       this.tokenFarmer.address
     );    
   
@@ -111,6 +112,42 @@ contract('TokenFarmerFactory', function (accounts) {
       assert.equal(proxyBalancecDAI.toString(), tokenKMinted.toString());
     });
   });
+  describe('redeem', async function () {
+    beforeEach(async function () {
+      await daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
+      await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+    });
+    it('should redeem cTokens and transfer DAI to user', async function () {
+      const proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
+      this.tokenFarmerProxy = await TokenFarmer.at(proxyAddress);
+
+      const initialcDAIbalance = await cDaiInstance.balanceOf(proxyAddress);
+      const initialDAIbalance = await daiInstance.balanceOf(userWallet);
+      const initialCOMPbalance = await compInstance.balanceOf(userWallet);
+      const initialTokenKbalance = await this.tokenFarmerFactory.balanceOf(userWallet);
+
+      console.log('initialcDAIbalance', initialcDAIbalance.toString());
+      console.log('initialDAIbalance', initialDAIbalance.toString());
+      console.log('initialCOMPbalance', initialCOMPbalance.toString());
+      console.log('initialTokenKbalance', initialTokenKbalance.toString());
+
+      await this.tokenFarmerFactory.redeem(initialTokenKbalance, {from : userWallet});
+
+      const endingcDAIbalance = await cDaiInstance.balanceOf(proxyAddress);
+      const endingDAIbalance = await daiInstance.balanceOf(userWallet);
+      const endingCOMPbalance = await compInstance.balanceOf(userWallet);
+      const endingTokenKbalance = await this.tokenFarmerFactory.balanceOf(userWallet);
+
+      const balance = await this.tokenFarmerFactory.getTotalCOMPEarned.call({from: userWallet});
+      
+      console.log('endingcDAIbalance', endingcDAIbalance.toString());
+      console.log('endingDAIbalance', endingDAIbalance.toString());
+      console.log('endingCOMPbalance', endingCOMPbalance.toString());
+      console.log('endingTokenKbalance', endingTokenKbalance.toString());
+      console.log('balance', balance.toString());
+
+    });
+  });
   describe('transfer', async function () {
     beforeEach(async function () {
       await daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
@@ -160,19 +197,20 @@ contract('TokenFarmerFactory', function (accounts) {
 
       const metaData = await this.lensContract.methods.getCompBalanceMetadataExt(
         compAddress, comptroller, proxyAddress).call();
-      console.log(metaData);
+      const metaDataAccrued = metaData[3]; 
 
-      const earned = await this.tokenFarmerFactory.getTotalCOMPEarned.call(compAddress, {from: userWallet});
-      console.log(earned.toString());
+      const earned = await this.tokenFarmerFactory.getTotalCOMPEarned.call({from: userWallet});
+      assert.equal(metaDataAccrued, earned);
 
     });
   });
   describe('withdrawReward', async function () {
     beforeEach(async function () {
-      await daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
+      approvedAmount = ether('500000'); // 1000 DAI
+      await daiInstance.approve(this.tokenFarmerFactory.address, approvedAmount, { from: userWallet });
       await this.tokenFarmerFactory.mint(amount, { from: userWallet });
     });
-    it('should return total comp earned', async function () {
+    it('should transfer comp balance to userWallet', async function () {
       await time.advanceBlock();
 
       const proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
@@ -182,9 +220,85 @@ contract('TokenFarmerFactory', function (accounts) {
 
       const metaData = await this.lensContract.methods.getCompBalanceMetadataExt(
         compAddress, comptroller, userWallet).call();
-        console.log('userWallet', metaData);
+      const metaDataBalance = metaData[0]; 
 
       const balance = await compInstance.balanceOf(userWallet);
+      assert.equal(metaDataBalance, balance);
+    });
+    it('should transfer comp balance to userWallet', async function () {
+      await time.advanceBlock();
+
+      const proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
+
+      const metaData1 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, userWallet).call();
+        console.log('userWallet, after first mint, before withdraw', metaData1);
+
+      const metaData2 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after first mint, before withdraw', metaData2);
+
+      await this.tokenFarmerFactory.withdrawReward(compAddress, {from: userWallet});
+
+      const metaData3 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, userWallet).call();
+        console.log('userWallet, after withdraw', metaData3);
+
+      const metaData4 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after withdraw', metaData4);
+
+      await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+
+      await time.advanceBlock();
+
+      const metaData5 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, userWallet).call();
+        console.log('userWallet, after mint', metaData5);
+
+      const metaData6 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after mint', metaData6);
+
+      const balance = await compInstance.balanceOf(userWallet);
+      console.log(balance.toString());
+    });
+    it('testing', async function () {
+
+      const proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
+
+      const metaData1 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after first mint', metaData1);
+
+      await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+
+      const metaData2 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after second mint', metaData2);
+      
+        await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+
+      const metaData3 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after 3rd mint', metaData3);
+
+        await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+
+      const metaData4 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after 4th mint', metaData4);
+
+      await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+
+      await comptrollerInstance.claimComp(proxyAddress);
+
+      const metaData5 = await this.lensContract.methods.getCompBalanceMetadataExt(
+        compAddress, comptroller, proxyAddress).call();
+        console.log('proxyAddress, after 5th mint', metaData5);
+      // shouldn't there be a balance in the metadata?
+
+      const balance = await compInstance.balanceOf(proxyAddress);
       console.log(balance.toString());
     });
   });

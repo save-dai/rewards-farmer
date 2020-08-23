@@ -14,13 +14,15 @@ contract TokenFarmer is Farmer {
     // interfaces
     IERC20 public dai;
     ICToken public cToken;
+    IERC20 public compToken;
 
-  function initialize(address owner, address cTokenAddress)
+  function initialize(address owner, address cTokenAddress, address compAddress)
         public
     {
         Farmer.initialize(owner);
         cToken = ICToken(cTokenAddress);
         dai = IERC20(cToken.underlying());
+        compToken = IERC20(compAddress);
     }
 
 
@@ -50,27 +52,33 @@ contract TokenFarmer is Farmer {
         // if transferring all, selfdestruct proxy?
     }
 
-    function getTotalCOMPEarned(address compAddress) public returns (uint256) {
+    function redeem(uint256 amount, address user) public {
+        // Redeem returns 0 on success
+        require(cToken.redeem(amount) == 0, "redeem function must execute successfully");
+        
+        // identify DAI balance and transfer
+        uint256 daiBalance = dai.balanceOf(address(this));
+        require(dai.transfer(user, daiBalance), "must transfer");
+
+        // withdraw reward
+        withdrawReward(user);
+    }
+
+    function getTotalCOMPEarned() public returns (uint256) {
         IComptrollerLens comptroller = IComptrollerLens(address(cToken.comptroller()));
         comptroller.claimComp(address(this));
-        IERC20 comp = IERC20(compAddress);
-        uint256 balance = comp.balanceOf(address(this));
+
+        uint256 balance = compToken.balanceOf(address(this));
         return balance;
     }
 
-    function withdrawReward(address compAddress, address to) public {
+    function withdrawReward(address user) public {
         IComptrollerLens comptroller = IComptrollerLens(address(cToken.comptroller()));
         comptroller.claimComp(address(this));
-        IERC20 comp = IERC20(compAddress);
-        uint256 balance = comp.balanceOf(address(this));
-        require(comp.transfer(to, balance), "must transfer");
+
+        uint256 balance = compToken.balanceOf(address(this));
+        require(compToken.transfer(user, balance), "must transfer");
     }
-
-    // function redeem (withdraws DAI, which automatically withdraws COMP)
-        // when you want to redeem cDAI
-        // transfers COMP to user
-
-    // getTotalRewardEarned (balance + accrued)
 
     // delegateCOMP?
 

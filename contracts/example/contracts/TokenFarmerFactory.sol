@@ -17,17 +17,21 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
     IERC20 public dai;
     ICToken public cToken;
 
+    address public compToken;
+
     constructor(
-        address cDaiAddress,
+        address cTokenAddress,
         address daiAddress,
+        address compTokenAddress,
         address logicAddress
     )
         ERC20("TokenK", "TKL")
         FarmerFactory(logicAddress)
         public
     {
-        cToken = ICToken(cDaiAddress);
+        cToken = ICToken(cTokenAddress);
         dai = IERC20(daiAddress);
+        compToken = compTokenAddress;
     }
 
     function mint(uint256 amount)
@@ -38,7 +42,7 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
 
         // if msg.sender does not have a proxy, deploy proxy
         if (farmerProxy[msg.sender] == address(0)) {
-            proxy = deployProxy(msg.sender, address(cToken));
+            proxy = deployProxy(msg.sender, address(cToken), compToken);
         } else {
             proxy = farmerProxy[msg.sender];
         }
@@ -72,7 +76,7 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
 
         // if recipient does not have a proxy, deploy a proxy
         if (recipientProxy == address(0)) {
-            recipientProxy = deployProxy(to, address(cToken));
+            recipientProxy = deployProxy(to, address(cToken), compToken);
         } 
 
         // transfer interest bearing token to recipient
@@ -86,26 +90,23 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         return true;
     }
 
-    function getTotalCOMPEarned(address compAddress)
+    function redeem(uint256 amount) public {
+        address proxy = farmerProxy[msg.sender];
+        TokenFarmer(proxy).redeem(amount, msg.sender);
+        _burn(msg.sender, amount);
+    }
+
+    function getTotalCOMPEarned()
         public
         returns (uint256) 
     {
         address proxy = farmerProxy[msg.sender];
-        return TokenFarmer(proxy).getTotalCOMPEarned(compAddress);
+        return TokenFarmer(proxy).getTotalCOMPEarned();
     }
 
-    function withdrawReward(address compAddress) public {
+    function withdrawReward() public {
         address proxy = farmerProxy[msg.sender];
-        TokenFarmer(proxy).withdrawReward(compAddress, msg.sender);
+        TokenFarmer(proxy).withdrawReward(msg.sender);
     }
-
-    // function withdrawRewards() external returns (uint256 amount){
-    //     return withdrawRewardsInternal(msg.sender);
-    // }
-
-    // function getTotalCOMPEarned() public view
-    //     address wrapper = cDAIOwner[msg.sender];
-    //     CDAIWrapper(wrapper).getTotalCOMPEarned(msg.sender);
-    // }
 
 }

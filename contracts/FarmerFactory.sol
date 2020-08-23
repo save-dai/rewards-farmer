@@ -18,27 +18,28 @@ contract FarmerFactory is ProxyFactory {
         logicContract = _logicContract;
     }
 
-    function deployProxy(address owner, address cToken)
+    function deployProxy(address owner, address cToken, address compToken)
         public
         virtual
         returns (address proxy)
     {
-        bytes memory data = _encodeData(owner, cToken);
+        bytes memory data = _encodeData(owner, cToken, compToken);
         proxy = deployMinimal(logicContract, data);
         farmerProxy[owner] = proxy;
         return proxy;
     }
 
-    function _encodeData(address owner, address cToken)
+    function _encodeData(address owner, address cToken, address compToken)
         internal
         pure
         returns (bytes memory)
     {
-        bytes4 selector = 0x485cc955;
+        bytes4 selector = 0xc0c53b8b;
         return abi.encodeWithSelector(
             selector,
             owner,
-            cToken
+            cToken,
+            compToken
         );
     }
 
