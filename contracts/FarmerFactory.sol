@@ -31,6 +31,7 @@ contract FarmerFactory is ProxyFactory {
      * @dev Creates and deploys a new farmer proxy contract on behalf of the owner.
      * @param owner The address of the owner of the farmer proxy to be deployed.
      * @param cToken The address of the interest bearing asset token.
+     * @return proxy Return the newly created farmer proxy's address
      */
     function deployProxy(
         address owner,
@@ -55,6 +56,7 @@ contract FarmerFactory is ProxyFactory {
      * @dev Encodes the data necessary to make low-level call and deploy the farmer proxy.
      * @param owner The address of the owner of the farmer proxy to be deployed.
      * @param cToken The address of the interest bearing asset token.
+     * @return Return the encoded data necessary to make low-level call.
      */
     function _encodeData(
         address owner,
