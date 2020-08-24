@@ -41,7 +41,7 @@ contract('TokenFarmerFactory', function (accounts) {
       cDaiAddress,
       daiAddress,
       compAddress,
-      this.tokenFarmer.address
+      this.tokenFarmer.address,
     );
 
     this.tokenFarmerFactory = await TokenFarmerFactory.at(this.tokenFarmerFactory.address);
