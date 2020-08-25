@@ -1,5 +1,5 @@
 {
-  "name": "@rewards-farmer/contracts",
+  "name": "rewards-farmer",
   "version": "1.0.0-alpha",
   "description": "open-source factory for managing rewards tokens",
   "files": [
