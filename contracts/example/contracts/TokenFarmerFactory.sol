@@ -42,7 +42,11 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
 
         // if msg.sender does not have a proxy, deploy proxy
         if (farmerProxy[msg.sender] == address(0)) {
-            proxy = deployProxy(msg.sender, address(cToken), compToken);
+            proxy = deployProxy(
+                msg.sender,
+                address(cToken),
+                address(dai),
+                compToken);
         } else {
             proxy = farmerProxy[msg.sender];
         }
@@ -66,24 +70,28 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         return true;
     }
 
-    function transfer(address to, uint256 amount)
+    function transfer(address recipient, uint256 amount)
         public
         override
         returns (bool)
     {
         address senderProxy = farmerProxy[msg.sender];
-        address recipientProxy = farmerProxy[to];
+        address recipientProxy = farmerProxy[recipient];
 
         // if recipient does not have a proxy, deploy a proxy
         if (recipientProxy == address(0)) {
-            recipientProxy = deployProxy(to, address(cToken), compToken);
+            recipientProxy = deployProxy(
+                recipient,
+                address(cToken),
+                address(dai),
+                compToken);
         } 
 
         // transfer interest bearing token to recipient
         TokenFarmer(senderProxy).transfer(recipientProxy, amount);
 
         // transfer TokenK tokens
-        super.transfer(to, amount);
+        super.transfer(recipient, amount);
 
         // to do: EVENT
 

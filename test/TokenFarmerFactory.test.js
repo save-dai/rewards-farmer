@@ -31,11 +31,11 @@ const compAddress = '0xc00e94cb662c3520282e6f5717214004a7f26888';
 const lensAddress = web3.utils.toChecksumAddress('0xd513d22422a3062Bd342Ae374b4b9c20E0a9a074');
 const comptroller = web3.utils.toChecksumAddress('0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b');
 
-const userWallet = '0x897607ab556177b0e0938541073ac1e01c55e483';
+const userWallet = web3.utils.toChecksumAddress('0x897607ab556177b0e0938541073ac1e01c55e483');
 
 
 contract('TokenFarmerFactory', function (accounts) {
-  amount = ether('100000'); // 1000 DAI
+  amount = ether('100000'); // 100000 DAI
   owner = accounts[0];
   notOwner = accounts[1];
   recipient = accounts[2];
@@ -216,7 +216,7 @@ contract('TokenFarmerFactory', function (accounts) {
       const proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
       this.tokenFarmerProxy = await TokenFarmer.at(proxyAddress);
 
-      await this.tokenFarmerFactory.withdrawReward(compAddress, {from: userWallet});
+      await this.tokenFarmerFactory.withdrawReward({from: userWallet});
 
       const metaData = await this.lensContract.methods.getCompBalanceMetadataExt(
         compAddress, comptroller, userWallet).call();
@@ -238,7 +238,7 @@ contract('TokenFarmerFactory', function (accounts) {
         compAddress, comptroller, proxyAddress).call();
         console.log('proxyAddress, after first mint, before withdraw', metaData2);
 
-      await this.tokenFarmerFactory.withdrawReward(compAddress, {from: userWallet});
+      await this.tokenFarmerFactory.withdrawReward({from: userWallet});
 
       const metaData3 = await this.lensContract.methods.getCompBalanceMetadataExt(
         compAddress, comptroller, userWallet).call();

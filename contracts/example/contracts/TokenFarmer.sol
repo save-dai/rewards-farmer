@@ -13,16 +13,20 @@ contract TokenFarmer is Farmer {
 
     // interfaces
     IERC20 public dai;
-    ICToken public cToken;
-    IERC20 public compToken;
+    ICToken public cDai;
+    IERC20 public comp;
 
-  function initialize(address owner, address cTokenAddress, address compAddress)
+  function initialize(
+        address owner,
+        address cDaiAddress,
+        address daiAddress,
+        address compAddress)
         public
     {
         Farmer.initialize(owner);
-        cToken = ICToken(cTokenAddress);
-        dai = IERC20(cToken.underlying());
-        compToken = IERC20(compAddress);
+        cDai = ICToken(cDaiAddress);
+        dai = IERC20(daiAddress);
+        comp = IERC20(compAddress);
     }
 
 
@@ -31,30 +35,30 @@ contract TokenFarmer is Farmer {
         uint256 daiBalance = dai.balanceOf(address(this));
 
         // approve the transfer
-        dai.approve(address(cToken), daiBalance);
+        dai.approve(address(cDai), daiBalance);
 
-        uint256 initialBalance = cToken.balanceOf(address(this));
+        uint256 initialBalance = cDai.balanceOf(address(this));
 
         // mint interest bearing token
-        require(cToken.mint(daiBalance) == 0, "Tokens must mint");
+        require(cDai.mint(daiBalance) == 0, "Tokens must mint");
 
-        uint256 updatedBalance = cToken.balanceOf(address(this));
+        uint256 updatedBalance = cDai.balanceOf(address(this));
 
         return updatedBalance.sub(initialBalance);
     }
 
     function transfer(address to, uint256 amount) public returns (bool) {
         // approve the transfer
-        cToken.approve(to, amount);
+        cDai.approve(to, amount);
 
-        require(cToken.transfer(to, amount), "must transfer");
+        require(cDai.transfer(to, amount), "must transfer");
         return true;
         // if transferring all, selfdestruct proxy?
     }
 
     function redeem(uint256 amount, address user) public {
         // Redeem returns 0 on success
-        require(cToken.redeem(amount) == 0, "redeem function must execute successfully");
+        require(cDai.redeem(amount) == 0, "redeem function must execute successfully");
         
         // identify DAI balance and transfer
         uint256 daiBalance = dai.balanceOf(address(this));
@@ -65,19 +69,19 @@ contract TokenFarmer is Farmer {
     }
 
     function getTotalCOMPEarned() public returns (uint256) {
-        IComptrollerLens comptroller = IComptrollerLens(address(cToken.comptroller()));
+        IComptrollerLens comptroller = IComptrollerLens(address(cDai.comptroller()));
         comptroller.claimComp(address(this));
 
-        uint256 balance = compToken.balanceOf(address(this));
+        uint256 balance = comp.balanceOf(address(this));
         return balance;
     }
 
     function withdrawReward(address user) public {
-        IComptrollerLens comptroller = IComptrollerLens(address(cToken.comptroller()));
+        IComptrollerLens comptroller = IComptrollerLens(address(cDai.comptroller()));
         comptroller.claimComp(address(this));
 
-        uint256 balance = compToken.balanceOf(address(this));
-        require(compToken.transfer(user, balance), "must transfer");
+        uint256 balance = comp.balanceOf(address(this));
+        require(comp.transfer(user, balance), "must transfer");
     }
 
     // delegateCOMP?
