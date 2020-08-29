@@ -17,8 +17,14 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
     IERC20 public dai;
     ICToken public cToken;
 
+    // rewards / governance token address
     address public compToken;
 
+    /// @dev Constructor
+    /// @param cTokenAddress The address of the asset token.
+    /// @param daiAddress The address of the underlying asset token.
+    /// @param compTokenAddress The address of the rewards / governance token.
+    /// @param logicAddress The logic contract address that the proxies will point to.
     constructor(
         address cTokenAddress,
         address daiAddress,
@@ -34,6 +40,9 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         compToken = compTokenAddress;
     }
 
+    /// @dev Your DeFi wrapper token's mint function.
+    /// @param amount The number of tokens to mint.
+    /// @return Returns true if successfully executed.
     function mint(uint256 amount)
         external
         returns (bool)
@@ -70,6 +79,10 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         return true;
     }
 
+    /// @dev Your DeFi wrapper token's transfer function.
+    /// @param recipient The address receiving your token.
+    /// @param amount The number of tokens to transfer.
+    /// @return Returns true if successfully executed.
     function transfer(address recipient, uint256 amount)
         public
         override
@@ -98,12 +111,16 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         return true;
     }
 
+    /// @dev Your DeFi wrapper token's redeem function.
+    /// @param amount The number of tokens to redeem.
     function redeem(uint256 amount) public {
         address proxy = farmerProxy[msg.sender];
         TokenFarmer(proxy).redeem(amount, msg.sender);
         _burn(msg.sender, amount);
     }
 
+    /// @dev The amount of rewards / governance tokens earned in the Farmer.
+    /// @return Returns the amount of rewards / governance tokens earned.
     function getTotalCOMPEarned()
         public
         returns (uint256) 
@@ -112,6 +129,7 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         return TokenFarmer(proxy).getTotalCOMPEarned();
     }
 
+    /// @dev Withdraw the rewards / governance tokens earned in the Farmer.
     function withdrawReward() public {
         address proxy = farmerProxy[msg.sender];
         TokenFarmer(proxy).withdrawReward(msg.sender);

@@ -2,21 +2,17 @@
 
 pragma solidity ^0.6.0;
 
-/**
- * @dev Base factory contract used to create and deploy the farmer proxyies
- * Reference: OpenZeppelin's ProxyFactory contract
- * https://github.com/OpenZeppelin/openzeppelin-sdk/blob/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
- */
+/// @dev Base factory contract used to create and deploy the farmer proxyies
+/// Reference: OpenZeppelin's ProxyFactory contract
+/// https://github.com/OpenZeppelin/openzeppelin-sdk/blob/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
 contract ProxyFactory {
 
     event ProxyCreated(address proxy);
 
-    /**
-     * @dev Creates and deploys a new farmer proxy contract.
-     * @param _logic The address of the logic contract that the proxy points to.
-     * @param _data The encoded data necessary to make low-level call and deploy the farmer proxy.
-     * @return proxy Return the newly created farmer proxy's address.
-     */
+    /// @dev Creates and deploys a new farmer proxy contract.
+    /// @param _logic The address of the logic contract that the proxy points to.
+    /// @param _data The encoded data necessary to make low-level call and deploy the farmer proxy.
+    /// @return proxy Return the newly created farmer proxy's address.
     function deployMinimal(address _logic, bytes memory _data) public returns (address proxy) {
         bytes20 targetBytes = bytes20(_logic);
         assembly {
