@@ -15,18 +15,18 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
 
     // interfaces
     IERC20 public dai;
-    ICToken public cToken;
+    ICToken public cDai;
 
     // rewards / governance token address
     address public compToken;
 
     /// @dev Constructor
-    /// @param cTokenAddress The address of the asset token.
+    /// @param cDaiAddress The address of the asset token.
     /// @param daiAddress The address of the underlying asset token.
     /// @param compTokenAddress The address of the rewards / governance token.
     /// @param logicAddress The logic contract address that the proxies will point to.
     constructor(
-        address cTokenAddress,
+        address cDaiAddress,
         address daiAddress,
         address compTokenAddress,
         address logicAddress
@@ -35,25 +35,24 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         FarmerFactory(logicAddress)
         public
     {
-        cToken = ICToken(cTokenAddress);
+        cDai = ICToken(cDaiAddress);
         dai = IERC20(daiAddress);
         compToken = compTokenAddress;
     }
 
     /// @dev Your DeFi wrapper token's mint function.
-    /// @param amount The number of tokens to mint.
+    /// @param amount The amount of tokens to deposit
     /// @return Returns true if successfully executed.
     function mint(uint256 amount)
         external
-        returns (bool)
-    {
+        returns (bool) {
         address proxy;
 
         // if msg.sender does not have a proxy, deploy proxy
         if (farmerProxy[msg.sender] == address(0)) {
             proxy = deployProxy(
                 msg.sender,
-                address(cToken),
+                address(cDai),
                 address(dai),
                 compToken);
         } else {
@@ -86,8 +85,7 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
     function transfer(address recipient, uint256 amount)
         public
         override
-        returns (bool)
-    {
+        returns (bool) {
         address senderProxy = farmerProxy[msg.sender];
         address recipientProxy = farmerProxy[recipient];
 
@@ -95,7 +93,7 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         if (recipientProxy == address(0)) {
             recipientProxy = deployProxy(
                 recipient,
-                address(cToken),
+                address(cDai),
                 address(dai),
                 compToken);
         } 
