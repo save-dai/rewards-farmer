@@ -1,20 +1,41 @@
 {
   "name": "rewards-farmer",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "description": "open-source factory for managing rewards tokens",
-  "main": "truffle-config.js",
+  "files": [
+    "/contracts/**/*.sol",
+    "/build/contracts/*.json",
+    "!/contracts/mocks",
+    "!/contracts/examples",
+    "/test/*.js"
+  ],
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx mocha --exit --recursive --timeout 0",
+    "lint": "npm run lint:js:fix && npm run lint:sol",
+    "lint:nofix": "npm run lint:js && npm run lint:sol",
+    "lint:js": "./node_modules/.bin/eslint .",
+    "lint:js:fix": "./node_modules/.bin/eslint . --fix",
+    "lint:sol": "./node_modules/.bin/solhint  \"contracts/**/*.sol\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/save-dai/rewards-farmer.git"
   },
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contract",
+    "yeild",
+    "farming",
+    "contract",
+    "factory"
+  ],
+  "author": "saveDAI",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/save-dai/rewards-farmer/issues"
   },
@@ -23,6 +44,10 @@
     "@openzeppelin/contracts": "^3.1.0",
     "@openzeppelin/contracts-ethereum-package": "^3.0.0",
     "@openzeppelin/test-helpers": "^0.5.6",
-    "truffle-hdwallet-provider": "^1.0.17"
+    "@truffle/hdwallet-provider": "^1.0.42",
+    "solhint": "^3.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.7.0"
   }
 }
