@@ -104,7 +104,35 @@ contract TokenFarmerFactory is ERC20, FarmerFactory {
         // transfer TokenK tokens
         super.transfer(recipient, amount);
 
-        // to do: EVENT
+        return true;
+    }
+
+    /// @dev Your DeFi wrapper token's transferFrom function.
+    /// @param sender The address tokens transferred from.
+    /// @param recipient The address receiving tokens.
+    /// @param amount The number of tokens to transfer.
+    /// @return Returns true if successfully executed.
+    function transferFrom(address sender, address recipient, uint256 amount)
+        public
+        override
+        returns (bool) {
+        address senderProxy = farmerProxy[sender];
+        address recipientProxy = farmerProxy[recipient];
+
+        // if recipient does not have a proxy, deploy a proxy
+        if (recipientProxy == address(0)) {
+            recipientProxy = deployProxy(
+                recipient,
+                address(cDai),
+                address(dai),
+                compToken);
+        } 
+
+        // transfer interest bearing token to recipient
+        TokenFarmer(senderProxy).transfer(recipientProxy, amount);
+
+        // transfer TokenK tokens
+        super.transferFrom(sender, recipient, amount);
 
         return true;
     }

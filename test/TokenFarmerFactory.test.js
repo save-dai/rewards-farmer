@@ -34,6 +34,7 @@ contract('TokenFarmerFactory', function (accounts) {
   owner = accounts[0];
   notOwner = accounts[1];
   recipient = accounts[2];
+  exchange = accounts[3];
 
   beforeEach(async function () {
     this.tokenFarmer = await TokenFarmer.new();
@@ -206,6 +207,86 @@ contract('TokenFarmerFactory', function (accounts) {
       const remainder = senderTokenKBalanceBefore.sub(partialTransfer);
 
       await this.tokenFarmerFactory.transfer(recipient, partialTransfer, { from: userWallet });
+
+      this.recipientProxyAddress = await this.tokenFarmerFactory.farmerProxy.call(recipient);
+
+      const sendercDAIbalanceAfter = await this.cDaiInstance.balanceOf(this.senderProxyAddress);
+      const recipientcDAIBalanceAfter = await this.cDaiInstance.balanceOf( this.recipientProxyAddress);
+
+      assert.equal(remainder.toString(), sendercDAIbalanceAfter.toString());
+      assert.equal(partialTransfer.toString(), recipientcDAIBalanceAfter.toString());
+    });
+  });
+  describe('transferFrom', async function () {
+    beforeEach(async function () {
+      await this.daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
+      await this.tokenFarmerFactory.mint(amount, { from: userWallet });
+      this.senderProxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);
+    });
+    it('should transfer all TokenK from sender to recipient (full transfer)', async function () {
+      const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
+
+      // give approval to exchange to transfer tokens on senders behalf
+      await this.tokenFarmerFactory.approve(exchange, senderTokenKBalanceBefore, { from : userWallet });
+      await this.tokenFarmerFactory.transferFrom(
+        userWallet, recipient, senderTokenKBalanceBefore,
+        { from: exchange },
+      );
+
+      const senderTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(userWallet);
+      const recipientTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(recipient);
+
+      assert.equal(senderTokenKBalanceAfter.toString(), 0);
+      assert.equal(senderTokenKBalanceBefore.toString(), recipientTokenKBalanceAfter.toString());
+    });
+    it('should deploy proxy and send all cDAI to recipient (full transfer)', async function () {
+      const sendercDAIbalanceBefore = await this.cDaiInstance.balanceOf(this.senderProxyAddress);
+      const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
+
+      // give approval to exchange to transfer tokens on senders behalf
+      await this.tokenFarmerFactory.approve(exchange, senderTokenKBalanceBefore, { from : userWallet });
+      await this.tokenFarmerFactory.transferFrom(
+        userWallet, recipient, senderTokenKBalanceBefore,
+        { from: exchange },
+      );
+
+      this.recipientProxyAddress = await this.tokenFarmerFactory.farmerProxy.call(recipient);
+
+      const sendercDAIbalanceAfter = await this.cDaiInstance.balanceOf(this.senderProxyAddress);
+      const recipientcDAIBalanceAfter = await this.cDaiInstance.balanceOf( this.recipientProxyAddress);
+
+      assert.equal(sendercDAIbalanceAfter.toString(), 0);
+      assert.equal(sendercDAIbalanceBefore.toString(), recipientcDAIBalanceAfter.toString());
+    });
+    it('should transfer TokenK from sender to recipient (partial transfer)', async function () {
+      const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
+      const partialTransfer = senderTokenKBalanceBefore.div(new BN (4));
+      const remainder = senderTokenKBalanceBefore.sub(partialTransfer);
+
+      // give approval to exchange to transfer tokens on senders behalf
+      await this.tokenFarmerFactory.approve(exchange, partialTransfer, { from : userWallet });
+      await this.tokenFarmerFactory.transferFrom(
+        userWallet, recipient, partialTransfer,
+        { from: exchange },
+      );
+
+      const senderTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(userWallet);
+      const recipientTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(recipient);
+
+      assert.equal(remainder.toString(), senderTokenKBalanceAfter.toString());
+      assert.equal(partialTransfer.toString(), recipientTokenKBalanceAfter.toString());
+    });
+    it('should deploy proxy and send cDAI to recipient (partial transfer)', async function () {
+      const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
+      const partialTransfer = senderTokenKBalanceBefore.div(new BN (4));
+      const remainder = senderTokenKBalanceBefore.sub(partialTransfer);
+
+      // give approval to exchange to transfer tokens on senders behalf
+      await this.tokenFarmerFactory.approve(exchange, partialTransfer, { from : userWallet });
+      await this.tokenFarmerFactory.transferFrom(
+        userWallet, recipient, partialTransfer,
+        { from: exchange },
+      );
 
       this.recipientProxyAddress = await this.tokenFarmerFactory.farmerProxy.call(recipient);
 
