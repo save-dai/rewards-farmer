@@ -62,12 +62,8 @@ contract TokenFarmer is Farmer {
     /// @param amount The amount of cDAI to transfer.
     /// @return Returns true if succesfully executed.
     function transfer(address to, uint256 amount) public onlyOwner returns (bool) {
-        // approve the transfer
-        cDai.approve(to, amount);
-
         require(cDai.transfer(to, amount), "must transfer");
         return true;
-        // if transferring all, selfdestruct proxy?
     }
 
     /// @dev Redeems the cDAI asset token for DAI and withdraws
@@ -105,7 +101,5 @@ contract TokenFarmer is Farmer {
         uint256 balance = comp.balanceOf(address(this));
         require(comp.transfer(user, balance), "must transfer");
     }
-
-    // delegateCOMP?
 
 }
