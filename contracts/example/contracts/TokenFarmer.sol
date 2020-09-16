@@ -20,18 +20,18 @@ contract TokenFarmer is Farmer {
     IERC20 public comp;
 
     /// @dev Initializer function to launch proxy.
-    /// @param owner The address that will be the owner of the TokenFarmer.
+    /// @param tokenFarmerFactory The address of the TokenFarmerFactory.
     /// @param cDaiAddress The address of the cDAI asset token.
     /// @param daiAddress The address of the underlying DAI token.
     /// @param compAddress The address of the rewards / governance token.
     function initialize(
-        address owner,
+        address tokenFarmerFactory,
         address cDaiAddress,
         address daiAddress,
         address compAddress)
         public
     {
-        Farmer.initialize(owner);
+        Farmer.initialize(tokenFarmerFactory);
         cDai = ICToken(cDaiAddress);
         dai = IERC20(daiAddress);
         comp = IERC20(compAddress);
@@ -40,7 +40,7 @@ contract TokenFarmer is Farmer {
     /// @dev Mint the cDAI asset token that sits in the contract and accrues interest as
     /// well as the corresponding governance / rewards tokens, COMP in this examble.
     /// @return The amount of cDAI minted.
-    function mint() public returns (uint256)  {
+    function mint() public onlyOwner returns (uint256)  {
         // identify the current balance of the contract
         uint256 daiBalance = dai.balanceOf(address(this));
 
@@ -61,7 +61,7 @@ contract TokenFarmer is Farmer {
     /// @param to The address the cDAI should be transferred to.
     /// @param amount The amount of cDAI to transfer.
     /// @return Returns true if succesfully executed.
-    function transfer(address to, uint256 amount) public returns (bool) {
+    function transfer(address to, uint256 amount) public onlyOwner returns (bool) {
         // approve the transfer
         cDai.approve(to, amount);
 
@@ -74,7 +74,7 @@ contract TokenFarmer is Farmer {
     /// the rewards / governance tokens that have accrued.
     /// @param amount The amount of cDAI to redeem.
     /// @param user The address to send the DAI to.
-    function redeem(uint256 amount, address user) public {
+    function redeem(uint256 amount, address user) public onlyOwner {
         // Redeem returns 0 on success
         require(cDai.redeem(amount) == 0, "redeem function must execute successfully");
         
@@ -88,7 +88,7 @@ contract TokenFarmer is Farmer {
 
     /// @dev Returns the COMP balance that has accured in the contract.
     /// @return Returns the balance of COMP in the contract.
-    function getTotalCOMPEarned() public returns (uint256) {
+    function getTotalCOMPEarned() public onlyOwner returns (uint256) {
         IComptrollerLens comptroller = IComptrollerLens(address(cDai.comptroller()));
         comptroller.claimComp(address(this));
 
@@ -98,7 +98,7 @@ contract TokenFarmer is Farmer {
 
     /// @dev Allows user to withdraw the accrued COMP tokens at any time.
     /// @param user The address to send the COMP tokens to.
-    function withdrawReward(address user) public {
+    function withdrawReward(address user) public onlyOwner {
         IComptrollerLens comptroller = IComptrollerLens(address(cDai.comptroller()));
         comptroller.claimComp(address(this));
 

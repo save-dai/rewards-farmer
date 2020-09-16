@@ -24,13 +24,13 @@ contract FarmerFactory is ProxyFactory {
     }
 
     /// @dev Creates and deploys a new farmer proxy contract on behalf of the owner.
-    /// @param owner The address of the owner of the farmer proxy to be deployed.
+    /// @param proxyUser The address of the user the farmer proxy is deployed for.
     /// @param assetToken The address of the interest bearing asset token.
     /// @param underlyingToken The address of the underlying token.
     /// @param rewardsToken The address of the rewards or governance token.
     /// @return proxy Return the newly created farmer proxy's address
     function deployProxy(
-        address owner,
+        address proxyUser,
         address assetToken,
         address underlyingToken,
         address rewardsToken)
@@ -39,34 +39,31 @@ contract FarmerFactory is ProxyFactory {
         returns (address proxy)
         {
             bytes memory data = _encodeData(
-                owner,
                 assetToken,
                 underlyingToken,
                 rewardsToken);
             proxy = deployMinimal(logicContract, data);
-            farmerProxy[owner] = proxy;
+            farmerProxy[proxyUser] = proxy;
             return proxy;
         }
 
     /// @dev Encodes the data necessary to make low-level call and deploy the farmer proxy.
-    /// @param owner The address of the owner of the farmer proxy to be deployed.
     /// @param assetToken The address of the interest bearing asset token.
     /// @param underlyingToken The address of the underlying token.
     /// @param rewardsToken The address of the rewards or governance token.
     /// @return Return the encoded data necessary to make low-level call.
     function _encodeData(
-        address owner,
         address assetToken,
         address underlyingToken,
         address rewardsToken)
         internal
-        pure
+        view
         returns (bytes memory)
     {
         bytes4 selector = 0xf8c8765e;
         return abi.encodeWithSelector(
             selector,
-            owner,
+            address(this),
             assetToken,
             underlyingToken,
             rewardsToken

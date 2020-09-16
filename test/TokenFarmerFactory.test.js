@@ -73,7 +73,7 @@ contract('TokenFarmerFactory', function (accounts) {
     expect(new BN(ethBalance)).to.be.bignumber.least(new BN(ether('0.1')));
   });
   describe('mint', async function () {
-    it('should deploy proxy for msg.sender and set them as owner', async function () {
+    it('should deploy proxy for msg.sender and set factory contract as owner', async function () {
       await this.daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
       await this.tokenFarmerFactory.mint(amount, { from: userWallet });
 
@@ -82,7 +82,7 @@ contract('TokenFarmerFactory', function (accounts) {
 
       const owner = await this.tokenFarmerProxy.owner();
 
-      assert.equal(owner, userWallet);
+      assert.equal(owner, this.tokenFarmerFactory.address);
     });
     it('should mint cDAI in proxy', async function () {
       // calculate how much cDAI should be minted
