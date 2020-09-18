@@ -1,6 +1,14 @@
 # rewards-farmer
 Rewards Farmer is an open-source proxy factory that can be used with your DeFi wrapper token to manage the rewards and governance tokens that your users accrue.
 
+```WARNING: This code has not yet been audited. Please be careful and use at your own risk.```
+
+## Installation
+
+```console
+$ npm install @openzeppelin/contracts
+```
+
 ## Contracts
 
 ### FarmerFactory.sol
