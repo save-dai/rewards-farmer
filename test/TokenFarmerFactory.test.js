@@ -34,7 +34,7 @@ contract('TokenFarmerFactory', function (accounts) {
   owner = accounts[0];
   notOwner = accounts[1];
   recipient = accounts[2];
-  exchange = accounts[3];
+  relayer = accounts[3];
 
   beforeEach(async function () {
     this.tokenFarmer = await TokenFarmer.new();
@@ -226,11 +226,11 @@ contract('TokenFarmerFactory', function (accounts) {
     it('should transfer all TokenK from sender to recipient (full transfer)', async function () {
       const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
 
-      // give approval to exchange to transfer tokens on senders behalf
-      await this.tokenFarmerFactory.approve(exchange, senderTokenKBalanceBefore, { from : userWallet });
+      // give approval to relayer to transfer tokens on sender's behalf
+      await this.tokenFarmerFactory.approve(relayer, senderTokenKBalanceBefore, { from : userWallet });
       await this.tokenFarmerFactory.transferFrom(
         userWallet, recipient, senderTokenKBalanceBefore,
-        { from: exchange },
+        { from: relayer },
       );
 
       const senderTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(userWallet);
@@ -243,11 +243,11 @@ contract('TokenFarmerFactory', function (accounts) {
       const sendercDAIbalanceBefore = await this.cDaiInstance.balanceOf(this.senderProxyAddress);
       const senderTokenKBalanceBefore = await this.tokenFarmerFactory.balanceOf(userWallet);
 
-      // give approval to exchange to transfer tokens on senders behalf
-      await this.tokenFarmerFactory.approve(exchange, senderTokenKBalanceBefore, { from : userWallet });
+      // give approval to relayer to transfer tokens on sender's behalf
+      await this.tokenFarmerFactory.approve(relayer, senderTokenKBalanceBefore, { from : userWallet });
       await this.tokenFarmerFactory.transferFrom(
         userWallet, recipient, senderTokenKBalanceBefore,
-        { from: exchange },
+        { from: relayer },
       );
 
       this.recipientProxyAddress = await this.tokenFarmerFactory.farmerProxy.call(recipient);
@@ -263,11 +263,11 @@ contract('TokenFarmerFactory', function (accounts) {
       const partialTransfer = senderTokenKBalanceBefore.div(new BN (4));
       const remainder = senderTokenKBalanceBefore.sub(partialTransfer);
 
-      // give approval to exchange to transfer tokens on senders behalf
-      await this.tokenFarmerFactory.approve(exchange, partialTransfer, { from : userWallet });
+      // give approval to relayer to transfer tokens on sender's behalf
+      await this.tokenFarmerFactory.approve(relayer, partialTransfer, { from : userWallet });
       await this.tokenFarmerFactory.transferFrom(
         userWallet, recipient, partialTransfer,
-        { from: exchange },
+        { from: relayer },
       );
 
       const senderTokenKBalanceAfter = await this.tokenFarmerFactory.balanceOf(userWallet);
@@ -281,11 +281,11 @@ contract('TokenFarmerFactory', function (accounts) {
       const partialTransfer = senderTokenKBalanceBefore.div(new BN (4));
       const remainder = senderTokenKBalanceBefore.sub(partialTransfer);
 
-      // give approval to exchange to transfer tokens on senders behalf
-      await this.tokenFarmerFactory.approve(exchange, partialTransfer, { from : userWallet });
+      // give approval to relayer to transfer tokens on sender's behalf
+      await this.tokenFarmerFactory.approve(relayer, partialTransfer, { from : userWallet });
       await this.tokenFarmerFactory.transferFrom(
         userWallet, recipient, partialTransfer,
-        { from: exchange },
+        { from: relayer },
       );
 
       this.recipientProxyAddress = await this.tokenFarmerFactory.farmerProxy.call(recipient);
@@ -299,7 +299,7 @@ contract('TokenFarmerFactory', function (accounts) {
   });
   describe('redeem', async function () {
     beforeEach(async function () {
-      largeAmount = ether('100000'); // 100 DAI
+      largeAmount = ether('100000'); // 100000 DAI
       await this.daiInstance.approve(this.tokenFarmerFactory.address, largeAmount, { from: userWallet });
       await this.tokenFarmerFactory.mint(largeAmount, { from: userWallet });
       this.proxyAddress = await this.tokenFarmerFactory.farmerProxy.call(userWallet);

@@ -27,7 +27,7 @@ const comptroller = web3.utils.toChecksumAddress('0x3d9819210a31b4961b30ef54be2a
 const userWallet = web3.utils.toChecksumAddress('0x897607ab556177b0e0938541073ac1e01c55e483');
 
 contract('TokenFarmer', function (accounts) {
-  amount = ether('100'); // 100 DAI
+  amount = ether('100'); // 100 DAI - ether helper used to generate 18 zeros
   owner = accounts[0];
   notOwner = accounts[1];
   recipient = accounts[2];
@@ -62,7 +62,7 @@ contract('TokenFarmer', function (accounts) {
 
   });
 
-  describe('Token Farmer functions', async function () {
+  describe('TokenFarmer functions', async function () {
     beforeEach(async function () {
       await this.daiInstance.approve(this.tokenFarmerFactory.address, amount, { from: userWallet });
       await this.tokenFarmerFactory.mint(amount, { from: userWallet });

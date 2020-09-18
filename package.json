@@ -1,6 +1,6 @@
 {
   "name": "rewards-farmer",
-  "version": "1.0.0-alpha",
+  "version": "1.0.3",
   "description": "open-source factory for managing rewards tokens",
   "files": [
     "/contracts/**/*.sol",

@@ -23,7 +23,7 @@ contract FarmerFactory is ProxyFactory {
         logicContract = _logicContract;
     }
 
-    /// @dev Creates and deploys a new farmer proxy contract on behalf of the owner.
+    /// @dev Creates and deploys a new farmer proxy contract on behalf of the user.
     /// @param proxyUser The address of the user the farmer proxy is deployed for.
     /// @param assetToken The address of the interest bearing asset token.
     /// @param underlyingToken The address of the underlying token.

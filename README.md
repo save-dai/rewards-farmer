@@ -1,9 +1,7 @@
 # rewards-farmer
-open-source factory for managing rewards tokens
+Rewards Farmer is an open-source proxy factory that can be used with your DeFi wrapper token to manage the rewards and governance tokens that your users accrue.
 
 ## Contracts
-
-![img](/img/FarmerFactory.png)
 
 ### FarmerFactory.sol
 
@@ -16,15 +14,21 @@ open-source factory for managing rewards tokens
 
 * sets FarmerFactory contract as owner to prevent direct function calls to Farmer
 
+## Architecture
+
+![img](/img/FarmerFactory.png)
+
 ## How to use
 
-Inherit from the FarmerFactory contract in your token contract. Inherit from the Farmer contract to create your own Farmer contract that mints your reward bearing token. The FarmerFactory deploys proxy contracts that delegate to your Farmer contract.
+1. Create your own TokenFarmer contract that inherits from the Farmer contract. Your TokenFarmer contract is used as the logic contract for the proxies that your wrapper token contract will deploy. These proxies are used to mint, store, transfer and redeem your users' interest bearing tokens (e.g., cDAI) all while at the same time accumulating their corresponding rewards or governance tokens (e.g., COMP).
+
+2. Then, have your wrapper token contract inherit from the FarmerFactory contract. Your wrapper token contract can now be used as a factory contract for generating TokenFarmer proxies on behalf of your users.
 
 ### Example
 
-[TokenFarmerFactory](contracts/example/TokenFarmerFactory.sol)
+[TokenFarmerFactory](contracts/example/contracts/TokenFarmerFactory.sol)
 
-[TokenFarmer](contracts/example/TokenFarmer.sol)
+[TokenFarmer](contracts/example/contracts/TokenFarmer.sol)
 
 
 ## Testing
